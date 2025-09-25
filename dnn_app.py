@@ -14,7 +14,7 @@ from io import BytesIO
 # 1️⃣ Load Model
 # -----------------------------
 @st.cache_resource
-def load_dnn_model(path='dnn_audio_classification.h5'):
+def load_dnn_model(path='dnn_app.py'):
     model = load_model(path)
     return model
 
@@ -109,3 +109,4 @@ with tab2:
         librosa.display.specshow(S_db, sr=sr, x_axis='time', y_axis='mel')
         plt.colorbar(format='%+2.0f dB')
         st.pyplot(plt)
+
