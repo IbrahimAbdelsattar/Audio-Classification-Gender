@@ -66,10 +66,6 @@ if uploaded_file:
 
     st.success(f"✅ Predicted Class: {predicted_class}")
 
-    # Display prediction probabilities
-    st.subheader("Prediction Probabilities")
-    st.bar_chart(prediction.flatten())
-
     # Display Mel-Spectrogram
     st.subheader("Mel-Spectrogram")
     S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128)
@@ -78,3 +74,4 @@ if uploaded_file:
     librosa.display.specshow(S_db, sr=sr, x_axis='time', y_axis='mel')
     plt.colorbar(format='%+2.0f dB')
     st.pyplot(plt)
+
