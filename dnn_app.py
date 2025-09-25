@@ -22,21 +22,42 @@ model = load_dnn_model()
 # 2️⃣ Feature Extraction Function
 # -----------------------------
 def extract_features(audio, sr=22050):
+    # 1️⃣ MFCCs: 13
     mfccs = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=13)
+    mfccs_mean = np.mean(mfccs.T, axis=0)  # shape (13,)
+
+    # 2️⃣ Spectral Centroid: 12 ? (تقدر تعمل mean على frames) -> 1 value
     spectral_centroid = librosa.feature.spectral_centroid(y=audio, sr=sr)
+    spectral_centroid_mean = np.mean(spectral_centroid.T, axis=0)  # shape (frames,)
+
+    # 3️⃣ Zero Crossing Rate
     zcr = librosa.feature.zero_crossing_rate(audio)
+    zcr_mean = np.mean(zcr.T, axis=0)
+
+    # 4️⃣ RMS
     rms = librosa.feature.rms(y=audio)
+    rms_mean = np.mean(rms.T, axis=0)
+
+    # 5️⃣ Spectral Rolloff
     spectral_rolloff = librosa.feature.spectral_rolloff(y=audio, sr=sr)
-    
+    spectral_rolloff_mean = np.mean(spectral_rolloff.T, axis=0)
+
     features = np.concatenate((
-        np.mean(mfccs.T, axis=0),
-        np.mean(spectral_centroid.T, axis=0),
-        np.mean(zcr.T, axis=0),
-        np.mean(rms.T, axis=0),
-        np.mean(spectral_rolloff.T, axis=0)
+        mfccs_mean, 
+        spectral_centroid_mean[:12],  # ناخد اول 12 frame او نعمل padding
+        zcr_mean, 
+        rms_mean, 
+        spectral_rolloff_mean
     ))
-    
+
+    # padding لو العدد مش 57
+    if features.shape[0] < 57:
+        features = np.pad(features, (0, 57 - features.shape[0]), mode='constant')
+    elif features.shape[0] > 57:
+        features = features[:57]
+
     return features.reshape(1, -1)
+
 
 # -----------------------------
 # 3️⃣ Streamlit UI
@@ -74,3 +95,4 @@ if uploaded_file:
     librosa.display.specshow(S_db, sr=sr, x_axis='time', y_axis='mel')
     plt.colorbar(format='%+2.0f dB')
     st.pyplot(plt)
+
