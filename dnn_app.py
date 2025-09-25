@@ -18,7 +18,7 @@ def load_dnn_model(path='dnn_model.h5'):
     return model
 
 @st.cache_resource
-def load_scaler(path='scaler.pkl'):
+def load_scaler(path='scaller.pkl'):
     scaler = joblib.load(path)
     return scaler
 
@@ -88,3 +88,4 @@ if uploaded_file:
     librosa.display.specshow(S_db, sr=sr, x_axis='time', y_axis='mel')
     plt.colorbar(format='%+2.0f dB')
     st.pyplot(plt)
+
