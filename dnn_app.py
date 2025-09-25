@@ -7,16 +7,23 @@ import librosa.display
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
+import joblib  # for loading scaler
 
 # -----------------------------
-# 1️⃣ Load DNN Model
+# 1️⃣ Load DNN Model and Scaler
 # -----------------------------
 @st.cache_resource
 def load_dnn_model(path='dnn_model.h5'):
     model = load_model(path)
     return model
 
+@st.cache_resource
+def load_scaler(path='scaler.pkl'):
+    scaler = joblib.load(path)
+    return scaler
+
 model = load_dnn_model()
+scaler = load_scaler()
 
 # -----------------------------
 # 2️⃣ Feature Extraction
@@ -42,6 +49,7 @@ def extract_features(audio, sr=22050, n_mfcc=13):
         rms_mean
     ])
 
+    # Reshape to (1, n_features) for scaler & model
     return feature_vector.reshape(1, -1)
 
 # -----------------------------
@@ -59,11 +67,17 @@ if uploaded_file:
     y, sr = librosa.load(uploaded_file, sr=22050)
     st.audio(uploaded_file, format='audio/wav')
 
-    # Extract features and predict
+    # Extract features
     features = extract_features(y, sr)
-    prediction = model.predict(features)
-    predicted_class = np.argmax(prediction, axis=1)[0]
 
+    # Scale features using saved scaler
+    features_scaled = scaler.transform(features)
+
+    # Predict
+    prediction = model.predict(features_scaled)
+    
+    # For multi-class softmax
+    predicted_class = np.argmax(prediction, axis=1)[0]
     st.success(f"✅ Predicted Class: {predicted_class}")
 
     # Display Mel-Spectrogram
@@ -74,4 +88,3 @@ if uploaded_file:
     librosa.display.specshow(S_db, sr=sr, x_axis='time', y_axis='mel')
     plt.colorbar(format='%+2.0f dB')
     st.pyplot(plt)
-
